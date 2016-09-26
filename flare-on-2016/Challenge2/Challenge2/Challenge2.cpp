@@ -61,6 +61,10 @@ int main()
 
 	//Need to figure this step out as it isnt clear
 	//if(CryptSetKeyParam(h_key, 1, ))
+	BYTE data = 0x41414141;
+	DWORD len = 4;
+	if(CryptEncrypt(h_key, h_hash, true, 0, &data, &len, 4))
+		printf("%s\n", data);
 	return 0;
 }
 
