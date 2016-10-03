@@ -6,7 +6,7 @@
 #include <WinUser.h>
 
 
-typedef void(__cdecl *uef)(int, int);
+typedef void(__cdecl *beep)(int, int);
 int main()
 {
 	HMODULE dll;
@@ -38,8 +38,9 @@ int main()
 					/* Think this function needs to be run 18 times */
 					for (int i = 0; i < 18; i++)
 					{
-						uef func = (uef)fn;
-						func(300, 600); //random arg
+						beep func = (beep)fn;
+						//func(freq, dur)
+						func(5777, 999); //random arg
 					}
 					
 				}
