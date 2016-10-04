@@ -6,15 +6,15 @@
 #include <WinUser.h>
 
 
-typedef void(__cdecl *beep)(int, int);
+typedef void(__cdecl *beep)(int, int); //specifies that we must clear the stack on return
 int main()
 {
 	HMODULE dll;
 	FARPROC fn;
 	LPCSTR name;
+	beep func;
 
-	dll = LoadLibrary(L"C:\\flareon2016challenge.dll");
-	
+	dll = LoadLibrary(L"C:\\flareon2016challenge.dll"); //load the library
 
 	if (dll == NULL)
 	{
@@ -23,27 +23,35 @@ int main()
 	else
 	{
 		/* The order is incredibly important, need to figure this out properly */
-		int order[] = { 40,32,35,11,17,10,47,7,46,38,22,19,3,23,8,16,20,5,6,48,15,9,42,25,1,41,36,26,43,45,29,34,39,13,21,12,44,33,37,27,14,18,4,2,30,31,28,24,51,49,50 };
+		/* Possible order, gained from the return value from each function stored in eax */
+		int order[] = {0,35,22,25,9,45,23,36,2,12,37,14,18,8,46,30,7,4,42,34,47,11,32,27,39,10,3,21,13,16,33,26,17,44,6,20,48,19,29,38,24,15,41,31,28,43,5,40};
 		int size = sizeof(order) / sizeof(int);
 		for (int i = 0; i < size; i++)
 		{
 			name = MAKEINTRESOURCEA(order[i]);
 			fn = GetProcAddress(dll, name);
-
-			if (i == 50)
-			{
-				for (int i = 0; i < 18; i++)
-				{
-					beep func = (beep)fn;
-					//func(freq, dur) the args to this function change the encrypted string that is returned
-					func(1337, 1337); //random arg
-				}
-			}
-			else
+			if(fn != NULL)
 			{
 				fn();
 			}
 		}
+		/* Call function 51 */
+		name = MAKEINTRESOURCEA(51);
+		fn = GetProcAddress(dll, name);
+		fn();
+		
+		/* Get address of function 50 (beep function) */
+		name = MAKEINTRESOURCEA(50);
+		fn = GetProcAddress(dll, name);
+		func = (beep)fn;
+
+		int freq = 300, dur = 59;
+		for (int i = 0; i < 18; i++)
+		{
+			//func(freq, dur) the args to this function change the encrypted string that is returned
+			func(freq, dur); //random arg
+		}
+
 		
 	}
     return 0;
