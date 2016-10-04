@@ -22,40 +22,30 @@ int main()
 	}
 	else
 	{
-		/* At the moment all i can think to do is call each function sequentially */
-		for (int i = 0; i < 52; i++)
+		/* The order is incredibly important, need to figure this out properly */
+		int order[] = { 40,32,35,11,17,10,47,7,46,38,22,19,3,23,8,16,20,5,6,48,15,9,42,25,1,41,36,26,43,45,29,34,39,13,21,12,44,33,37,27,14,18,4,2,30,31,28,24,51,49,50 };
+		int size = sizeof(order) / sizeof(int);
+		for (int i = 0; i < size; i++)
 		{
-			name = MAKEINTRESOURCEA(i); //MAKEINTRESOURCEA returns an LPCSTR we can use as an ordinal value
+			name = MAKEINTRESOURCEA(order[i]);
 			fn = GetProcAddress(dll, name);
-			if (fn != NULL)
+
+			if (i == 50)
 			{
-				/* call func.50 with args 
-				*  this function takes two args, freq and duration (cdecl format).
-				*  the function then builds a "key" that is used to decrypt(?) data once it has been called 18 times.
-				*/
-				if (i == 50)
+				for (int i = 0; i < 18; i++)
 				{
-					/* Think this function needs to be run 18 times */
-					for (int i = 0; i < 18; i++)
-					{
-						beep func = (beep)fn;
-						//func(freq, dur)
-						func(5777, 999); //random arg
-					}
-					
-				}
-				/* else no args */
-				else
-				{
-					fn();
+					beep func = (beep)fn;
+					//func(freq, dur) the args to this function change the encrypted string that is returned
+					func(1337, 1337); //random arg
 				}
 			}
+			else
+			{
+				fn();
+			}
 		}
-
+		
 	}
-
-
-
     return 0;
 }
 
