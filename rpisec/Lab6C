@@ -1,0 +1,42 @@
+So we have a binary that stores a username, and sends tweets. There are 3 main functions we need to concern ourselves with: handle_tweet(), set_username() and set_tweet().
+
+Analysing each function:
+
+handle_tweet():
+• This function creates a struct called save. This struct is vulnerable to an overflow because of its structure. We can see that the tweet buffer can overwrite username and msglen, and username can overwrite msglen.
+• The function then zeros out the username buffer, and sets the message length to 140.
+• It then calls set_username() with an argument of the address of the save struct.
+• after that it calls the set_tweet() function with the same struct argument.
+• It then returns
+
+set_username():
+• This method starts by creating a char buffer 128bytes in size, and zeros its memory.
+• it then gets 128bytes of characters from stdin via fgets, and stores it in the buffer.
+• The function then iterates over the buffer 40times. This loop guard is important, it is where the vulnerability lies. for(int i  =0; i <= 40 && readbuf[i]; i++)
+• this loop guard iterates from 0-40, and stores the value at readbuf[i] in the username field of the save struct.
+• this field is only 40 bytes long, and in memory, it is directly before the msglen variable.
+• Therefore, if we supply 41 bytes of data, then the 41st will overflow and overwrite msglen. This is important for later.
+
+set_tweet():
+• set_tweet() creates another buffer, that is 1024 bytes in size of type char, and zeros out that memory.
+• it then reads from stdin and stores the input into the buffer.
+• Now, it uses strncpy(save->tweet, readbuf, save->msglen) to copy msglen amount of bytes from readbuf to the tweet filed of the struct array.
+• This is where the next vulnerability lies, because we can set msglen to a value of up to 255 (\xff), we can then overflow the tweet buffer, past the username buffer and eventually hit the return address from handle_tweet().
+
+
+This is the current exploit, we gain eip control after 282 ff bytes:
+• python -c 'print "A"*40 + "\xc8" + "\xff"*282 + "\x2b\x07\x00\x80"*4' > /tmp/pwn
+• python -c 'print "A"*40 + "\xc8" + "\xff"*282 + "A"*4' > /tmp/pwn
+• python -c 'print "A"*40 + "\xc6" + "\xff"*282 + "\x2b" + "\x07" ' > /tmp/pwn
+• This should now work if we brute force the program
+
+
+To do:
+• There is a secret backdoor function, I cant seem to figure out the address of it.
+• aslr is enabled, but there doesnt seem to be any info leakage.
+• could i ropchain?
+• alsr is now actually enabled, i need to partially overwrite the address to secret_backdoor(), i think only the last 2 bytes change
+• for example, when secret_backdoor is @ 0xb771a72b the address at the location we need to overwrite is 0xb771a98a
+• so only the last three bytes need to be changed
+• Got the flag p4rti4l_0verwr1tes_r_3nuff
+• Basically just kept re-running the program until it ran successfully, would only let me run one command before segfaulting
